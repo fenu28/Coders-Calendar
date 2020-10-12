@@ -1,66 +1,42 @@
 package com.noobsever.codingcontests.Screens;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
+import androidx.viewpager.widget.ViewPager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Toast;
+import android.widget.FrameLayout;
 
-import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
-import com.google.gson.Gson;
+import com.noobsever.codingcontests.Adapters.ViewPagerAdapter;
 import com.noobsever.codingcontests.R;
 import com.noobsever.codingcontests.Utils.Constants;
 import com.noobsever.codingcontests.Utils.Methods;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-public class LayoutOneActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class LayoutOneActivity extends BaseActivity{
 
     boolean doubleBackPressExitOnce = false;
-    NavigationView mNavigationOne;
-    MaterialToolbar mTopbarOne;
-    DrawerLayout mDrawerOne;
     TabLayout mTabLayout;
     ArrayList<String> mTabItemList;
-    SharedPreferences preferences;
+    ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_layout_one);
 
-        mNavigationOne = findViewById(R.id.navigation_one);
-        mTopbarOne = findViewById(R.id.top_bar_one);
-        mDrawerOne = findViewById(R.id.drawer_one);
+        FrameLayout content = findViewById(R.id.content_frame);
+        getLayoutInflater().inflate(R.layout.activity_layout_one, content);
+
         mTabLayout = findViewById(R.id.tab_layout);
+        mViewPager = findViewById(R.id.viewPager);
 
-        setSupportActionBar(mTopbarOne);
 
         /** Storing an ArrayList in SharedPreference using Gson.
          *  Reference : https://stackoverflow.com/a/27872280/13803511 */
 
-        preferences = getSharedPreferences(Constants.TAB_ITEMS_PREFERENCES_KEY,MODE_PRIVATE);
-
         try {
-            Gson gson = new Gson();
-            String jsonText = preferences.getString(Constants.TAB_ITEMS_ARRAYLIST_KEY, null);
-            String[] text = gson.fromJson(jsonText, String[].class); // could be null
-            mTabItemList = new ArrayList<>();
-            mTabItemList.addAll(Arrays.asList(text));
+            mTabItemList = (ArrayList<String>) Methods.fetchTabItems(this);
 
         }catch (NullPointerException e) {
             e.printStackTrace();
@@ -72,65 +48,21 @@ public class LayoutOneActivity extends AppCompatActivity implements NavigationVi
             mTabItemList.add(Constants.HACKEREARTH);
             mTabItemList.add(Constants.SPOJ);
             mTabItemList.add(Constants.ATCODER);
+            mTabItemList.add(Constants.LEETCODE);
+            mTabItemList.add(Constants.GOOGLE);
 
             // Bug fixed below : When App launches for first time Setting checkboxes remaining unmarked.
-            Gson gson = new Gson();
-            SharedPreferences.Editor editor = preferences.edit();
-            String text = gson.toJson(mTabItemList);
-            editor.putString(Constants.TAB_ITEMS_ARRAYLIST_KEY,text);
-            editor.apply();
+            Methods.saveTabItems(this,mTabItemList);
         }
 
         addTabs(); // Populate the tabs.
 
-        mNavigationOne.setNavigationItemSelectedListener(this);
+        /** Setting up View Pager and attaching fragments */
+        mTabLayout.setupWithViewPager(mViewPager);
+        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(),0);
+        viewPagerAdapter.initFragments(mTabItemList);
+        mViewPager.setAdapter(viewPagerAdapter);
 
-        ActionBarDrawerToggle mToggle = new ActionBarDrawerToggle(this, mDrawerOne, mTopbarOne,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close){
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-            }
-        };
-        mToggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.design_default_color_on_primary));
-        mDrawerOne.addDrawerListener(mToggle);
-        mToggle.syncState();
-
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.nav_settings:
-                //mDrawerOne.closeDrawer(GravityCompat.START);
-                startActivity(new Intent(this,Settings.class));
-                break;
-            case R.id.nav_notifications:
-
-                break;
-             //add for all menu options
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.appbar_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_layout:
-                // add action
-                break;
-            case R.id.menu_search:
-                // add action
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-        return true;
     }
 
     public void addTabs() {
@@ -139,6 +71,7 @@ public class LayoutOneActivity extends AppCompatActivity implements NavigationVi
             mTabLayout.addTab(mTabLayout.newTab().setText(s));
         }
     }
+
     @Override
     public void onBackPressed() {
         if(doubleBackPressExitOnce)
@@ -155,4 +88,5 @@ public class LayoutOneActivity extends AppCompatActivity implements NavigationVi
             }
         },2000);
     }
+
 }
