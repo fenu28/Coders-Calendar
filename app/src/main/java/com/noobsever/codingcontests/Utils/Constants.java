@@ -17,6 +17,5 @@ public class Constants {
     public static final String LAYOUT_SWITCH_KEY = "LAYOUT_SWITCH_KEY";
     public static final String CURRENT_ACTIVITY = "CURRENT_ACTIVITY";
     public static final String SWITCH_TWELVE = "switchTwelve";
-    public static final String SWITCH_TWENTY_FOUR = "switchTwentyFour";
     public static final String SWITCH_NOTIFICATION = "switchNotification";
 }

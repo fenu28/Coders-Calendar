@@ -1,19 +1,18 @@
 package com.noobsever.codingcontests.Screens;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ToggleButton;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.noobsever.codingcontests.R;
 import com.noobsever.codingcontests.Utils.Constants;
 import com.noobsever.codingcontests.Utils.Methods;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -23,7 +22,6 @@ public class Settings extends AppCompatActivity {
     private CheckBox cforces,cchef,hrank,hearth,spoj,atcoder,leetcode,google;
     private SwitchMaterial switchTwelve, switchTwentyFour, switchNotification;
     ArrayList<String> checkedItem;
-    ArrayList<String> toggledItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +35,9 @@ public class Settings extends AppCompatActivity {
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.back_button);
 
         checkedItem = new ArrayList<>();
-        toggledItem = new ArrayList<>();
 
         try {
             checkedItem = (ArrayList<String>) Methods.fetchTabItems(this);
-            toggledItem = (ArrayList<String>) Methods.fetchToggleItems(this);
 
         }catch (NullPointerException e) {
             e.printStackTrace();
@@ -67,15 +63,15 @@ public class Settings extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked)
                 {
-                    toggledItem.add(Constants.SWITCH_TWELVE);
+                    //If 12 hour switch checked, 1 is stored in sharedPreferences indicating ON
+                    Methods.setPreferences(Settings.this,Constants.SWITCH_TWELVE,Constants.SWITCH_TWELVE,1);
                     switchTwentyFour.setChecked(false);
-                    toggledItem.remove(Constants.SWITCH_TWENTY_FOUR);
                 }
                 else
                 {
-                    toggledItem.remove(Constants.SWITCH_TWELVE);
+                    //If 12 hour switch unchecked, 0 is stored in sharedPreferences indicating OFF and 24 hr switch checked
+                    Methods.setPreferences(Settings.this,Constants.SWITCH_TWELVE,Constants.SWITCH_TWELVE,0);
                     switchTwentyFour.setChecked(true);
-                    toggledItem.add(Constants.SWITCH_TWENTY_FOUR);
                 }
             }
         });
@@ -85,15 +81,15 @@ public class Settings extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked)
                 {
-                    toggledItem.add(Constants.SWITCH_TWENTY_FOUR);
+                    //If 24 hour switch checked, 0 is stored in sharedPreferences indicating 12 hour switch OFF
+                    Methods.setPreferences(Settings.this,Constants.SWITCH_TWELVE,Constants.SWITCH_TWELVE,0);
                     switchTwelve.setChecked(false);
-                    toggledItem.remove(Constants.SWITCH_TWELVE);
                 }
                 else
                 {
-                    toggledItem.remove(Constants.SWITCH_TWENTY_FOUR);
+                    //If 24 hour switch checked, 1 is stored in sharedPreferences indicating 12 hour switch ON
+                    Methods.setPreferences(Settings.this,Constants.SWITCH_TWELVE,Constants.SWITCH_TWELVE,1);
                     switchTwelve.setChecked(true);
-                    toggledItem.add(Constants.SWITCH_TWELVE);
 
                 }
         }});
@@ -101,8 +97,12 @@ public class Settings extends AppCompatActivity {
         switchNotification.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) toggledItem.add(Constants.SWITCH_NOTIFICATION);
-                else toggledItem.remove(Constants.SWITCH_NOTIFICATION);
+                //If notification switch ON, 1 is stored in sharedPreferences
+                if(isChecked)
+                    Methods.setPreferences(Settings.this, Constants.SWITCH_NOTIFICATION,Constants.SWITCH_NOTIFICATION,1);
+                    //If notification switch ON, 0 is stored in sharedPreferences
+                else
+                    Methods.setPreferences(Settings.this,Constants.SWITCH_NOTIFICATION,Constants.SWITCH_NOTIFICATION,0);
             }
         });
 
@@ -112,7 +112,6 @@ public class Settings extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         checkedItem.clear();
-        toggledItem.clear();
 
         if(cforces.isChecked()) checkedItem.add(Constants.CODEFORCES);
         if(cchef.isChecked()) checkedItem.add(Constants.CODECHEF);
@@ -122,9 +121,6 @@ public class Settings extends AppCompatActivity {
         if(atcoder.isChecked()) checkedItem.add(Constants.ATCODER);
         if(leetcode.isChecked())checkedItem.add(Constants.LEETCODE);
         if(google.isChecked())checkedItem.add(Constants.GOOGLE);
-        if(switchTwelve.isChecked()) toggledItem.add(Constants.SWITCH_TWELVE);
-        if(switchTwentyFour.isChecked()) toggledItem.add(Constants.SWITCH_TWENTY_FOUR);
-        if(switchNotification.isChecked())toggledItem.add(Constants.SWITCH_NOTIFICATION);
 
         if(checkedItem.isEmpty())
         {
@@ -133,8 +129,6 @@ public class Settings extends AppCompatActivity {
             Methods.showToast(this,"Atleast 1 platform has to be selected");
         }
 
-        Methods.saveTabItems(this,checkedItem);
-        Methods.saveToggleItems(this, toggledItem);
 
         if(Methods.getIntPreferences(Settings.this, Constants.LAYOUT_SWITCH_KEY,Constants.CURRENT_ACTIVITY)==1)
             startActivity(new Intent(Settings.this,LayoutOneActivity.class));
@@ -144,45 +138,23 @@ public class Settings extends AppCompatActivity {
     }
 
     public void restoreCheckBoxState() {
-        HashSet<String> set = new HashSet<>();
-        for(String s : checkedItem) set.add(s);
-
-        if(set.contains(Constants.CODEFORCES)) cforces.setChecked(true);
-        else cforces.setChecked(false);
-
-        if(set.contains(Constants.CODECHEF)) cchef.setChecked(true);
-        else cchef.setChecked(false);
-
-        if(set.contains(Constants.HACKERRANK)) hrank.setChecked(true);
-        else hrank.setChecked(false);
-
-        if(set.contains(Constants.HACKEREARTH)) hearth.setChecked(true);
-        else hearth.setChecked(false);
-
-        if(set.contains(Constants.SPOJ)) spoj.setChecked(true);
-        else spoj.setChecked(false);
-
-        if(set.contains(Constants.ATCODER)) atcoder.setChecked(true);
-        else atcoder.setChecked(false);
-
-        if(set.contains(Constants.LEETCODE)) leetcode.setChecked(true);
-        else leetcode.setChecked(false);
-
-        if(set.contains(Constants.GOOGLE)) google.setChecked(true);
-        else google.setChecked(false);
-
+        HashSet<String> set = new HashSet<>(checkedItem);
+        cforces.setChecked(set.contains(Constants.CODEFORCES));
+        cchef.setChecked(set.contains(Constants.CODECHEF));
+        hrank.setChecked(set.contains(Constants.HACKERRANK));
+        hearth.setChecked(set.contains(Constants.HACKEREARTH));
+        spoj.setChecked(set.contains(Constants.SPOJ));
+        atcoder.setChecked(set.contains(Constants.ATCODER));
+        leetcode.setChecked(set.contains(Constants.LEETCODE));
+        google.setChecked(set.contains(Constants.GOOGLE));
     }
 
+    /***/
     public void restoreToggledItemsState()
     {
-        HashSet<String> toggledSet = new HashSet<>();
-        for(String s : toggledItem) toggledSet.add(s);
-
-        if(toggledSet.contains(Constants.SWITCH_TWELVE)) switchTwelve.setChecked(true);
-        else switchTwentyFour.setChecked(true);
-
-        if(toggledSet.contains(Constants.SWITCH_NOTIFICATION)) switchNotification.setChecked(true);
-        else switchNotification.setChecked(false);
-
+        
+        switchTwelve.setChecked(Methods.getIntPreferences(Settings.this,Constants.SWITCH_TWELVE,Constants.SWITCH_TWELVE)!=0);
+        switchTwentyFour.setChecked(Methods.getIntPreferences(Settings.this,Constants.SWITCH_TWELVE,Constants.SWITCH_TWELVE)==0);
+        switchNotification.setChecked(Methods.getIntPreferences(Settings.this, Constants.SWITCH_NOTIFICATION, Constants.SWITCH_NOTIFICATION) != 0);
     }
 }
