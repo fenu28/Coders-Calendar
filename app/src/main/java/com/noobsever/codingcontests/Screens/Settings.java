@@ -1,6 +1,7 @@
 package com.noobsever.codingcontests.Screens;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,7 +18,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Settings extends AppCompatActivity {
-    
+
+    Toolbar toolbar;
     private CheckBox cforces,cchef,hrank,hearth,spoj,atcoder,leetcode,google;
     private SwitchMaterial switchTwelve, switchTwentyFour, switchNotification;
     ArrayList<String> checkedItem;
@@ -27,6 +29,12 @@ public class Settings extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        toolbar = findViewById(R.id.app_bar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Settings");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.back_button);
 
         checkedItem = new ArrayList<>();
         toggledItem = new ArrayList<>();
